@@ -1,0 +1,36 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: dark;
+}
+
+html, body {
+  background: #020617;
+  color: #f8fafc;
+  height: 100%;
+  -webkit-tap-highlight-color: transparent;
+  overscroll-behavior-y: contain;
+}
+
+body {
+  font-family: -apple-system, system-ui, 'Hiragino Sans', 'Yu Gothic', sans-serif;
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+* {
+  -webkit-font-smoothing: antialiased;
+}
+
+input, textarea, select, button {
+  font-size: 16px;
+}
+
+/* スクロールバー */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-thumb { background: #334155; border-radius: 3px; }
+
+/* iOSセーフエリア対応 */
+.safe-top { padding-top: env(safe-area-inset-top); }
+.safe-bottom { padding-bottom: env(safe-area-inset-bottom); }
