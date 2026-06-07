@@ -1,17 +1,17 @@
 'use client';
 import { LineChart, Line, XAxis, YAxis, ResponsiveContainer, Tooltip, ReferenceLine } from 'recharts';
-import type { WeightLog } from '@/lib/types';
+import type { WeightLog } from '@/lib/db/schema';
 import { movingAverage } from '@/lib/tdee';
 
 export function WeightChart({
   logs, goalWeight, height = 220,
 }: { logs: WeightLog[]; goalWeight?: number; height?: number }) {
   const sorted = [...logs].sort((a, b) => a.date.localeCompare(b.date));
-  const weights = sorted.map(l => l.weight_kg);
+  const weights = sorted.map(l => Number(l.weight_kg));
   const ma = movingAverage(weights, 7);
   const data = sorted.map((l, i) => ({
     date: l.date.slice(5),
-    weight: l.weight_kg,
+    weight: Number(l.weight_kg),
     ma: ma[i],
   }));
 

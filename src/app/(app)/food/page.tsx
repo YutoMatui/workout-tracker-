@@ -101,12 +101,12 @@ export default function FoodPage() {
                 <div className="text-xs text-slate-400 mb-2 flex items-center gap-1">
                   <Star className="w-3 h-3" /> よく食べる
                 </div>
-                <FoodList items={favorites} onPick={setPicking} favorites={favorites} onToggleFav={f => toggleFavorite.mutate(f)} />
+                <FoodList items={favorites} onPick={setPicking} favorites={favorites} onToggleFav={(f: any) => toggleFavorite.mutate(f)} />
               </div>
             )
           ) : (
             <div className="mt-3">
-              <FoodList items={searchResults} onPick={setPicking} favorites={favorites} onToggleFav={f => toggleFavorite.mutate(f)} />
+              <FoodList items={searchResults} onPick={setPicking} favorites={favorites} onToggleFav={(f: any) => toggleFavorite.mutate(f)} />
             </div>
           )}
         </Card>

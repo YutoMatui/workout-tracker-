@@ -1,7 +1,13 @@
-import type { UserProfile, WeightLog, MealLog } from './types';
-
 const SURPLUS_KCAL_PER_DAY = 480;
 const KCAL_PER_KG_BODY = 7700;
+
+export interface BasicProfileInput {
+  sex: 'male' | 'female';
+  height_cm: number;
+  birthdate: string;
+  weight_kg: number;
+  activity_level: number;
+}
 
 export function calcAge(birthdate: string, today = new Date()): number {
   const b = new Date(birthdate);
@@ -11,13 +17,13 @@ export function calcAge(birthdate: string, today = new Date()): number {
   return age;
 }
 
-export function calcBMR(p: Pick<UserProfile, 'sex' | 'height_cm' | 'birthdate'> & { weight_kg: number }): number {
+export function calcBMR(p: Omit<BasicProfileInput, 'activity_level'>): number {
   const age = calcAge(p.birthdate);
   const base = 10 * p.weight_kg + 6.25 * p.height_cm - 5 * age;
   return Math.round(p.sex === 'male' ? base + 5 : base - 161);
 }
 
-export function calcTDEE(p: Pick<UserProfile, 'sex' | 'height_cm' | 'birthdate' | 'activity_level'> & { weight_kg: number }): number {
+export function calcTDEE(p: BasicProfileInput): number {
   return Math.round(calcBMR(p) * p.activity_level);
 }
 
@@ -29,7 +35,7 @@ export interface CalorieTargets {
   carb_target_g: number;
 }
 
-export function calcCalorieTargets(p: Pick<UserProfile, 'sex' | 'height_cm' | 'birthdate' | 'activity_level'> & { weight_kg: number }): CalorieTargets {
+export function calcCalorieTargets(p: BasicProfileInput): CalorieTargets {
   const tdee = calcTDEE(p);
   const target = tdee + SURPLUS_KCAL_PER_DAY;
   const protein = Math.round(p.weight_kg * 2.0);
@@ -56,6 +62,15 @@ export function movingAverage(values: (number | null)[], window = 7): (number | 
   });
 }
 
+export interface AdaptiveTdeeInput {
+  date: string;
+  weight_kg: number | string;
+}
+export interface AdaptiveMealInput {
+  date: string;
+  kcal: number | string;
+}
+
 export interface AdaptiveTdeeResult {
   estimated_tdee: number;
   weight_change_kg: number;
@@ -65,9 +80,9 @@ export interface AdaptiveTdeeResult {
 }
 
 export function adaptiveTdee(
-  weights: WeightLog[],
-  meals: MealLog[],
-  current_weight_kg: number,
+  weights: AdaptiveTdeeInput[],
+  meals: AdaptiveMealInput[],
+  _current_weight_kg: number,
 ): AdaptiveTdeeResult | null {
   if (weights.length < 2) return null;
   const sorted = [...weights].sort((a, b) => a.date.localeCompare(b.date));
@@ -77,7 +92,7 @@ export function adaptiveTdee(
   const period_days = Math.max(1, Math.round(periodMs / (1000 * 60 * 60 * 24)));
   if (period_days < 7) return null;
 
-  const weight_change_kg = newest.weight_kg - oldest.weight_kg;
+  const weight_change_kg = Number(newest.weight_kg) - Number(oldest.weight_kg);
 
   const kcalByDate = new Map<string, number>();
   for (const m of meals) {

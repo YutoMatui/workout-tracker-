@@ -1,5 +1,5 @@
 import webpush from 'web-push';
-import type { NotificationSubscription } from './types';
+import type { NotificationSubscription } from './db/schema';
 
 let initialized = false;
 function init() {

@@ -76,8 +76,8 @@ export default function WorkoutDetailPage({ params }: { params: Promise<{ id: st
             exercise={group.exercise}
             sets={group.sets}
             workoutId={id}
-            onAddSet={(reps, weight, rpe) => addSet.mutate({ exercise_id: exId, reps, weight_kg: weight, rpe })}
-            onRemove={(sid) => remove.mutate(sid)}
+            onAddSet={(reps: number, weight: number, rpe: number | null) => addSet.mutate({ exercise_id: exId, reps, weight_kg: weight, rpe })}
+            onRemove={(sid: string) => remove.mutate(sid)}
           />
         ))}
 
