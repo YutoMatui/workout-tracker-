@@ -12,3 +12,5 @@ next-env.d.ts
 drizzle/
 .drizzle/
 
+
+.vercel

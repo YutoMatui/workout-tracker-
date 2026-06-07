@@ -6,7 +6,6 @@ import { Card, CardTitle } from '@/components/Card';
 import { todayISO } from '@/lib/utils';
 import { Search, Star, Trash2 } from 'lucide-react';
 import { api } from '@/lib/fetcher';
-import type { Food, MealType } from '@/lib/db/schema';
 
 const MEAL_LABELS: Record<string, string> = {
   breakfast: '朝食', lunch: '昼食', dinner: '夕食', snack: '間食',
