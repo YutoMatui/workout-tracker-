@@ -1,5 +1,5 @@
-const CACHE_NAME = 'wo-tracker-v1';
-const STATIC_ASSETS = ['/', '/manifest.webmanifest'];
+const CACHE_NAME = 'wo-tracker-v2';
+const STATIC_ASSETS = ['/manifest.webmanifest'];
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
@@ -16,15 +16,21 @@ self.addEventListener('activate', (event) => {
 
 self.addEventListener('fetch', (event) => {
   const req = event.request;
+
+  // ナビゲーション(ページ遷移)とAPIはSWを通さない (リダイレクトのため)
+  if (req.mode === 'navigate') return;
   if (req.method !== 'GET') return;
 
   const url = new URL(req.url);
-  if (url.pathname.startsWith('/api/') || url.hostname.includes('supabase')) return;
+  if (url.pathname.startsWith('/api/')) return;
+  if (url.pathname.startsWith('/_next/')) return;
+  if (url.origin !== self.location.origin) return;
 
+  // 静的アセットのみキャッシュ
   event.respondWith(
     caches.match(req).then(cached => {
       const fetchPromise = fetch(req).then(networkRes => {
-        if (networkRes.ok && url.origin === self.location.origin) {
+        if (networkRes.ok && networkRes.type === 'basic') {
           const clone = networkRes.clone();
           caches.open(CACHE_NAME).then(c => c.put(req, clone));
         }
