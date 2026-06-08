@@ -42,7 +42,8 @@ Be realistic, not optimistic.`;
       generationConfig: {
         responseMimeType: 'application/json',
         temperature: 0.2,
-        maxOutputTokens: 256,
+        maxOutputTokens: 1024,
+        thinkingConfig: { thinkingBudget: 0 },
       },
     }),
   });
@@ -53,8 +54,12 @@ Be realistic, not optimistic.`;
   }
 
   const data = await res.json();
-  const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
-  if (!text) throw new Error('No response text from Gemini');
+  const candidate = data.candidates?.[0];
+  const text = candidate?.content?.parts?.[0]?.text;
+  if (!text) {
+    const reason = candidate?.finishReason ?? 'unknown';
+    throw new Error(`No response text from Gemini (finishReason=${reason})`);
+  }
 
   try {
     const parsed = JSON.parse(text) as EstimatedFood;
