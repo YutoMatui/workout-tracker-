@@ -4,7 +4,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Header } from '@/components/Header';
 import { Card, CardTitle } from '@/components/Card';
 import { todayISO } from '@/lib/utils';
-import { Search, Star, Trash2 } from 'lucide-react';
+import { Search, Star, Trash2, Sparkles } from 'lucide-react';
 import { api } from '@/lib/fetcher';
 
 const MEAL_LABELS: Record<string, string> = {
@@ -18,6 +18,7 @@ export default function FoodPage() {
   const [search, setSearch] = useState('');
   const [picking, setPicking] = useState<any>(null);
   const [quantity, setQuantity] = useState('100');
+  const [aiError, setAiError] = useState<string | null>(null);
 
   const { data: meals = [] } = useQuery({
     queryKey: ['meals', today],
@@ -67,6 +68,19 @@ export default function FoodPage() {
     onSuccess: () => qc.invalidateQueries({ queryKey: ['favorites'] }),
   });
 
+  const estimate = useMutation({
+    mutationFn: () => api<any>('/api/foods/estimate', {
+      method: 'POST',
+      body: JSON.stringify({ name: search.trim() }),
+    }),
+    onSuccess: (food) => {
+      setAiError(null);
+      setPicking(food);
+      qc.invalidateQueries({ queryKey: ['food-search'] });
+    },
+    onError: (e: any) => setAiError(e?.message ?? 'AI推論に失敗しました'),
+  });
+
   const totalKcal = meals.reduce((s: number, m: any) => s + Number(m.kcal), 0);
 
   return (
@@ -89,8 +103,8 @@ export default function FoodPage() {
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
             <input
-              type="search" placeholder="食品を検索"
-              value={search} onChange={e => setSearch(e.target.value)}
+              type="search" placeholder="食品を検索 (例: 親子丼)"
+              value={search} onChange={e => { setSearch(e.target.value); setAiError(null); }}
               className="w-full h-12 rounded-xl bg-slate-950 border border-slate-800 pl-10 pr-4"
             />
           </div>
@@ -105,8 +119,22 @@ export default function FoodPage() {
               </div>
             )
           ) : (
-            <div className="mt-3">
+            <div className="mt-3 space-y-2">
               <FoodList items={searchResults} onPick={setPicking} favorites={favorites} onToggleFav={(f: any) => toggleFavorite.mutate(f)} />
+
+              {search.length >= 2 && (
+                <button
+                  onClick={() => estimate.mutate()}
+                  disabled={estimate.isPending}
+                  className="w-full rounded-xl border border-emerald-500/40 bg-emerald-500/10 text-emerald-300 px-4 py-3 flex items-center justify-center gap-2 text-sm disabled:opacity-50"
+                >
+                  <Sparkles className="w-4 h-4" />
+                  {estimate.isPending ? 'AIが推論中…' : `「${search}」をAIで推論して追加`}
+                </button>
+              )}
+              {aiError && (
+                <div className="text-xs text-red-400 px-2">{aiError}</div>
+              )}
             </div>
           )}
         </Card>
@@ -123,7 +151,7 @@ export default function FoodPage() {
                     <div className="text-sm truncate">{m.food?.name}</div>
                     <div className="text-xs text-slate-400">{m.quantity_g}g / {Math.round(m.kcal)}kcal</div>
                   </div>
-                  <button onClick={() => remove.mutate(m.id)} className="p-2 text-slate-500">
+                  <button onClick={() => remove.mutate(m.id)} className="p-2 text-slate-500 shrink-0">
                     <Trash2 className="w-4 h-4" />
                   </button>
                 </div>
@@ -139,8 +167,15 @@ export default function FoodPage() {
           <div className="relative w-full max-w-md mx-auto bg-slate-900 rounded-t-3xl p-6"
             style={{ paddingBottom: 'calc(env(safe-area-inset-bottom) + 2rem)' }}
             onClick={e => e.stopPropagation()}>
-            <h2 className="text-lg font-bold mb-1">{picking.name}</h2>
-            <p className="text-xs text-slate-400 mb-4">{picking.kcal_per_100g} kcal / 100g</p>
+            <h2 className="text-lg font-bold mb-1">
+              {picking.name}
+              {picking.source === 'ai' && (
+                <span className="ml-2 inline-flex items-center gap-0.5 text-xs text-emerald-400 align-middle">
+                  <Sparkles className="w-3 h-3" /> AI推論
+                </span>
+              )}
+            </h2>
+            <p className="text-xs text-slate-400 mb-4">{Number(picking.kcal_per_100g)} kcal / 100g</p>
             <label className="text-xs text-slate-400">量 (g)</label>
             <input type="number" inputMode="numeric" value={quantity}
               onChange={e => setQuantity(e.target.value)}
@@ -166,11 +201,14 @@ function FoodList({ items, onPick, favorites, onToggleFav }: any) {
     <div className="divide-y divide-slate-800">
       {items.map((f: any) => (
         <div key={f.id} className="flex items-center gap-2 py-2">
-          <button onClick={() => onPick(f)} className="flex-1 text-left">
-            <div className="text-sm">{f.name}</div>
+          <button onClick={() => onPick(f)} className="flex-1 text-left min-w-0">
+            <div className="text-sm truncate">
+              {f.name}
+              {f.source === 'ai' && <Sparkles className="w-3 h-3 inline ml-1 text-emerald-400" />}
+            </div>
             <div className="text-xs text-slate-400">{Math.round(Number(f.kcal_per_100g))}kcal / 100g</div>
           </button>
-          <button onClick={() => onToggleFav(f)} className="p-2">
+          <button onClick={() => onToggleFav(f)} className="p-2 shrink-0">
             <Star className={`w-4 h-4 ${favorites.some((x: any) => x.id === f.id) ? 'fill-amber-400 text-amber-400' : 'text-slate-600'}`} />
           </button>
         </div>

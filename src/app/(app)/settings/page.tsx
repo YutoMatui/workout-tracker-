@@ -150,7 +150,9 @@ export default function SettingsPage() {
 
       <style jsx>{`
         :global(.input) {
+          box-sizing: border-box;
           width: 100%;
+          min-width: 0;
           height: 44px;
           border-radius: 12px;
           background: #020617;
@@ -158,6 +160,7 @@ export default function SettingsPage() {
           padding: 0 12px;
           color: white;
           margin-top: 4px;
+          display: block;
         }
       `}</style>
     </>

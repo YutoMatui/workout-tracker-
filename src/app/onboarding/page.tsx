@@ -148,13 +148,16 @@ export default function OnboardingPage() {
 
       <style jsx>{`
         :global(.input) {
+          box-sizing: border-box;
           width: 100%;
+          min-width: 0;
           height: 48px;
           border-radius: 12px;
           background: #0f172a;
           border: 1px solid #1e293b;
           padding: 0 16px;
           color: white;
+          display: block;
         }
       `}</style>
     </main>

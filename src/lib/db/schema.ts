@@ -146,7 +146,7 @@ export const foods = pgTable('foods', {
   protein_g_per_100g: numeric('protein_g_per_100g', { precision: 5, scale: 2 }).notNull().default('0'),
   fat_g_per_100g: numeric('fat_g_per_100g', { precision: 5, scale: 2 }).notNull().default('0'),
   carb_g_per_100g: numeric('carb_g_per_100g', { precision: 5, scale: 2 }).notNull().default('0'),
-  source: text('source', { enum: ['mext', 'user', 'manual', 'barcode'] }).notNull().default('manual'),
+  source: text('source', { enum: ['mext', 'user', 'manual', 'barcode', 'ai'] }).notNull().default('manual'),
   user_id: text('user_id').references(() => users.id, { onDelete: 'cascade' }),
   created_at: timestamp('created_at').notNull().defaultNow(),
 });
